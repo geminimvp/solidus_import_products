@@ -1,32 +1,32 @@
 require 'spec_helper'
 
-module Solidus
+module Spree
   describe ProductImport do
     describe "#create_variant_for" do
       before do
         product; size; color; option_color; option_size
       end
 
-      let(:product) { FactoryGirl.create(:product, :sku => "001", :permalink => "S0388G-bloch-kids-tap-flexewe") }
-      let(:size) { FactoryGirl.create(:option_type, :name => "tshirt-size") }
-      let(:color) { FactoryGirl.create(:option_type, :name => "tshirt-color", :presentation => "Color") }
-      let(:option_color) { FactoryGirl.create(:option_value, :name => "blue", :presentation => "Blue", :option_type => color) }
-      let(:option_size) { FactoryGirl.create(:option_value, :name => "s", :presentation => "Small", :option_type => size) }
+      let(:product) { create(:product, :sku => "001", :slug => "S0388G-bloch-kids-tap-flexewe") }
+      let(:size) { create(:option_type, :name => "tshirt-size") }
+      let(:color) { create(:option_type, :name => "tshirt-color", :presentation => "Color") }
+      let(:option_color) { create(:option_value, :name => "blue", :presentation => "Blue", :option_type => color) }
+      let(:option_size) { create(:option_value, :name => "s", :presentation => "Small", :option_type => size) }
 
-      let(:params) do
+      let(:variant_params) do
         {:sku=>"002", :name=>"S0388G Bloch Kids Tap Flexww", :description=>"Lace Up Split Sole Leather Tap Shoe",
-          :cost_price=>"29.25", :master_price=>"54.46", :available_on=>"1/1/10", :"tshirt-color"=>"Blue", :"tshirt-size"=>"Small",
+          :cost_price=>"29.25", :price=>"54.46", :available_on=>"1/1/10", :"tshirt-color"=>"Blue", :"tshirt-size"=>"Small",
           :on_hand=>"2", :height=>"3", :width=>"4", :depth=>"9", :weight=>"1", :position=>"0", :category=>"Categories >
-          Clothing", :permalink=>"S0388G-bloch-kids-tap-flexewe"
+          Clothing", :slug=>"S0388G-bloch-kids-tap-flexewe"
         }
       end
 
       it "creates a new variant when product already exist" do
-        product.variants_with_only_master.count.should == 1
-        expect do
-          ProductImport.new.send(:create_variant_for, product, :with => params)
-        end.to change(product.variants, :count).by(1)
-        product.variants_with_only_master.count.should == 1
+        expect(product.master).to be_present
+        expect {
+          ProductImport.new.send(:create_variant_for, product, :with => variant_params)
+        }.to change(product.variants, :count).by(1)
+        expect(product.master).to be_present
         variant = product.variants.last
         variant.price.to_f.should == 54.46
         variant.cost_price.to_f.should == 29.25
@@ -35,7 +35,7 @@ module Solidus
       end
 
       it "creates missing option_values for new variant" do
-        ProductImport.new.send(:create_variant_for, product, :with => params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
+        ProductImport.new.send(:create_variant_for, product, :with => variant_params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
         variant = product.variants.last
         product.option_types.should =~ [size, color]
         variant.option_values.should =~ OptionValue.where(:name => %w(Large Yellow))
@@ -43,8 +43,8 @@ module Solidus
 
       it "should not duplicate option_values for existing variant" do
         expect do
-          ProductImport.new.send(:create_variant_for, product, :with => params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
-          ProductImport.new.send(:create_variant_for, product, :with => params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
+          ProductImport.new.send(:create_variant_for, product, :with => variant_params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
+          ProductImport.new.send(:create_variant_for, product, :with => variant_params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
         end.to change(product.variants, :count).by(1)
         variant = product.variants.last
         product.option_types.should =~ [size, color]
@@ -52,9 +52,9 @@ module Solidus
       end
 
       it "throws an exception when variant with sku exist for another product" do
-        other_product = FactoryGirl.create(:product, :sku => "002")
+        other_product = create(:product, :sku => "002")
         expect do
-          ProductImport.new.send(:create_variant_for, product, :with => params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
+          ProductImport.new.send(:create_variant_for, product, :with => variant_params.merge(:"tshirt-size" => "Large", :"tshirt-color" => "Yellow"))
         end.to raise_error(SkuError)
       end
     end

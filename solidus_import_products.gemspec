@@ -21,9 +21,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'capybara', '2.4.4'
   s.add_development_dependency 'factory_girl', '~> 4.4'
   s.add_development_dependency 'ffaker'
-  s.add_development_dependency 'rspec-rails', '~> 3.1.0'
+  s.add_development_dependency 'rspec-rails', '~> 3.6.1'
   s.add_development_dependency 'sqlite3'
 	s.add_development_dependency 'launchy', '~> 2.0.5'
-  s.add_development_dependency 'ruby-debug19'
+  # s.add_development_dependency 'ruby-debug19'
 
 end

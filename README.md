@@ -13,25 +13,19 @@ FEATURES
 
 * A reasonably opinionated product import model should take the heavy lifting out of batch-importing products.
 * Using things like `class_eval`, it can be extended or changed to do more, less, or something differently.
-* Using delayed_job, the import is no longer processed when the user uploads the CSV file (**Note**: this requires the proper installation and configuration of delayed job). 
+* Using SuckerPunch, the import is no longer processed when the user uploads the CSV file (**Note**: this requires the proper installation and configuration of delayed job). 
 * Columns are mapped dynamically by default. This means that if you have a SKU column in your CSV file, it will be automatically set as the `sku` attribute of the Product model.
 * Multiple taxonomies are supported (By default, the importer looks for Brand and Taxonomy). Multiple taxonomy nesting is also supported. (See the 'Taxonomies' area below)
 * Multiple images are supported (By default, the importer looks for Image Main, Image 2, Image 3 and Image 4). Images can be loaded either from disk, or from a publicly-accessible URL.
-* Automatically creating variants is supported out-of-the-box - the importer compares the imported data with already-created products (By default, on the Product's `permalink` attribute), and creates a variant of that product if it exists already. Custom fields are also supported if dynamic column mapping is enabled - simply having 'Color', 'Size', 'Material' columns in your CSV file for example, will automatically set the relevant custom fields on the variant to the values from the CSV.
+* Automatically creating variants is supported out-of-the-box - the importer compares the imported data with already-created products (By default, on the Product's `slug` attribute), and creates a variant of that product if it exists already. Custom fields are also supported if dynamic column mapping is enabled - simply having 'Color', 'Size', 'Material' columns in your CSV file for example, will automatically set the relevant custom fields on the variant to the values from the CSV.
 * It now uses the Ruby 1.9.2 standard CSV library (a.k.a FasterCSV).
 
 
-DELAYED JOB
-==============
-This gem will require (or will install for you), [delayed_job](https://www.github.com/tobi/delayed_job).
-Once the gem has installed and you have run migrations, you should also run `rails generator delayed_job` to create the tables that delayed_job requires.
+SUCKER PUNCH
+============
+This gem will require (or will install for you), [sucker_punch](https://www.github.com/brandonhilkert/sucker_punch).
 
-Delayed Job also requires that you run 'workers' in the background to pop jobs off the queue and process them.
-This setup may seem like extra work, but believe me, it pays off - with this method, users get an immediate confirmation that their import is on it's way, with a confirmation later on with full details - this is much better than the previous method where the actual processing was completed during the request, with no feedback reaching the user until after the import had finished.
-
-Run `rake jobs:work` to start Delayed Job, and `rake jobs:clear` to clear all queued jobs. Also see delayed_job's Github page for info on Capistrano support.
-
-For more information on Delayed Job, and for help getting a worker running, see the [Github Project Page](https://www.github.com/collectiveidea/delayed_job)
+With this method, users get an immediate confirmation that their import is on its way, with a confirmation later on with full details. This is much better than the previous method where the actual processing was completed during the request, with no feedback reaching the user until after the import had finished.
 
 TAXONOMIES
 ==========
